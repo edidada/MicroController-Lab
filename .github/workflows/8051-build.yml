@@ -1,0 +1,126 @@
+name: 8051 build & run (as31 + uCsim)
+
+# What this workflow does, end to end:
+#
+#   1. install the open-source 8051 toolchain from Ubuntu's own archives
+#      (as31 2.3.1 = assembler, sdcc-ucsim = `s51` simulator);
+#   2. find every assembler source in the repository (.asm / .a51, any case);
+#   3. run each one through edidada-ci/asm51_shim.py, which translates the
+#      Keil/Intel ASM-51 dialect these teaching repos are written in into the
+#      subset AS31 accepts, then assembles it;
+#   4. load every resulting Intel HEX image into `s51` and execute a bounded
+#      number of instructions, printing PC, ticks and the register bank;
+#   5. fail the run only if a source listed in edidada-ci/gate.txt (the set
+#      verified to build when this branch was prepared) stops building, or if
+#      images exist but none can be simulated.
+#
+# Sources that genuinely cannot be built -- because the repository itself is
+# broken (typo `CJE`, missing sibling routine, `CJNE direct,#data,rel`) -- are
+# listed in the job summary with a reason tag instead of being hidden or
+# fake-passed. See edidada-ci/asm51_shim.py for the measured rule list.
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: 8051-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  asm51:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain (as31 + sdcc-ucsim)
+        run: |
+          set -o pipefail
+          sudo apt-get update -qq
+          if ! sudo apt-get install -y -qq --no-install-recommends as31 sdcc-ucsim >/tmp/apt-as31.log 2>&1; then
+            echo "::notice::as31 unavailable from the default mirrors, enabling the Ubuntu archive"
+            tail -5 /tmp/apt-as31.log || true
+            echo 'deb http://archive.ubuntu.com/ubuntu noble main universe multiverse' \
+              | sudo tee /etc/apt/sources.list.d/edidada-archive.list
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq --no-install-recommends as31 sdcc-ucsim
+          fi
+          dpkg -l as31 sdcc-ucsim | grep '^ii' || true
+          echo '--- as31 identity'
+          as31 </dev/null 2>&1 | sed -n '1,2p' || true
+          echo '--- s51 identity'
+          printf 'quit\n' | s51 -t 8051 2>&1 | sed -n '1,2p' || true
+
+      - name: Inventory assembly sources
+        run: |
+          mkdir -p build
+          find . -path ./.git -prune -o -path ./build -prune -o \
+               -path ./.github -prune -o \( -iname '*.asm' -o -iname '*.a51' \) -print \
+            | sed 's|^\./||' | sort > build/sources.txt
+          gated=$(grep -cvE '^\s*(#|$)' edidada-ci/gate.txt 2>/dev/null || echo 0)
+          echo "assembly sources: $(wc -l < build/sources.txt)   gated: $gated"
+          {
+            echo "### Branch \`$GITHUB_REF_NAME\`"
+            echo
+            echo "- assembler sources found: **$(wc -l < build/sources.txt)**"
+            echo "- gated (must keep building): **$gated**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Assemble with AS31 through the dialect shim
+        run: |
+          if [ ! -s build/sources.txt ]; then
+            echo "::notice::no assembler sources in this branch -- nothing to build"
+            echo "- _No assembly sources: this branch is documentation/hex only._" \
+              >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          xargs -a build/sources.txt -d '\n' -r python3 edidada-ci/asm51_shim.py \
+            --out build --gate-list edidada-ci/gate.txt \
+            --report build/report.json --stats build/stats.json \
+            --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: Execute the images on uCsim (s51)
+        run: |
+          if ! ls build/*.hex >/dev/null 2>&1; then
+            echo "::notice::no images to run"
+            exit 0
+          fi
+          python3 edidada-ci/sim_run.py --build build --steps 400 \
+            --report build/sim.json --summary "$GITHUB_STEP_SUMMARY"
+
+      - name: List what did not build, and why
+        if: always()
+        run: |
+          python3 - <<'PY' || true
+          import json, os
+          p = 'build/report.json'
+          if not os.path.exists(p):
+              print('no report.json (no sources on this branch)')
+              raise SystemExit(0)
+          d = json.load(open(p))
+          bad = [f for f in d['files'] if f['status'] != 'PASS']
+          print('%d/%d assembled; %d reported, not hidden:' % (d['passed'], d['total'], len(bad)))
+          for f in sorted(bad, key=lambda x: (x['status'], x['name'])):
+              print('  %-18s %-46s %s' % (f['status'][:18], f['name'][:46],
+                                          f['first_bad_line'].strip()[:60]))
+          PY
+
+      - name: Upload images, listings and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          # measured: an artifact name may not contain "/", and github.ref_name
+          # is literally "edidada/master" here -- that alone failed the run.
+          name: 8051-build-${{ github.run_number }}
+          path: |
+            build/*.hex
+            build/report.json
+            build/sim.json
+            build/stats.json
+            build/sources.txt
+          if-no-files-found: ignore
