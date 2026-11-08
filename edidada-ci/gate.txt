@@ -1,0 +1,4 @@
+# Sources verified to assemble with as31 2.3.1 + edidada-ci/asm51_shim.py
+# when this branch was prepared (0/0).
+# This branch holds no .asm/.a51 file at all, so there is nothing to
+# gate; the workflow still runs and reports "no assembler sources".
