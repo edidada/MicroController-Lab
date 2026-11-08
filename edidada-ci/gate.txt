@@ -1,0 +1,92 @@
+# Sources verified to assemble with as31 2.3.1 + edidada-ci/asm51_shim.py
+# when this branch was prepared (77/86 of the assembler files found).
+# CI fails if one of these stops building; everything else is reported
+# in the job summary with a reason tag instead of blocking the run.
+Experiment-1/E1_E1.ASM
+Experiment-1/E1_E10.ASM
+Experiment-1/E1_E11.ASM
+Experiment-1/E1_E2.ASM
+Experiment-1/E1_E3.ASM
+Experiment-1/E1_E4.ASM
+Experiment-1/E1_E5.ASM
+Experiment-1/E1_E6.ASM
+Experiment-1/E1_E7.ASM
+Experiment-1/E1_E8.ASM
+Experiment-1/E1_E9.ASM
+Experiment-10/E10_X1_1.ASM
+Experiment-10/E10_X1_2.ASM
+Experiment-10/E10_X1_3.ASM
+Experiment-10/E10_X2.ASM
+Experiment-10/E10_X3.ASM
+Experiment-10/E10_X4.ASM
+Experiment-11/E11_E1.ASM
+Experiment-11/E11_X1.ASM
+Experiment-12/E12_E2.ASM
+Experiment-12/E12_E3.ASM
+Experiment-12/E12_X1.ASM
+Experiment-12/E12_X2.ASM
+Experiment-12/E12_X3.ASM
+Experiment-2/E2_E1.ASM
+Experiment-2/E2_E2.ASM
+Experiment-2/E2_E3.ASM
+Experiment-2/E2_E4.ASM
+Experiment-2/E2_E5.ASM
+Experiment-2/E2_E6.ASM
+Experiment-2/E2_P1.ASM
+Experiment-2/E2_P2.ASM
+Experiment-2/E2_P3.ASM
+Experiment-2/E2_P4.ASM
+Experiment-2/E2_P5.ASM
+Experiment-2/E2_X1.ASM
+Experiment-2/E2_X3.ASM
+Experiment-3/E3_E1.ASM
+Experiment-3/E3_E2.ASM
+Experiment-3/E3_E3.ASM
+Experiment-3/E3_E4.ASM
+Experiment-3/E3_E5.ASM
+Experiment-3/E3_E6.ASM
+Experiment-3/E3_E7.ASM
+Experiment-3/E3_P1.ASM
+Experiment-3/E3_P2.ASM
+Experiment-3/E3_P3.ASM
+Experiment-3/E3_P4.ASM
+Experiment-3/E3_P5.ASM
+Experiment-3/E3_P6.ASM
+Experiment-3/E3_X1.ASM
+Experiment-3/E3_X2.ASM
+Experiment-3/E3_X2_2.ASM
+Experiment-3/E3_X3.ASM
+Experiment-3/E3_X3_2.ASM
+Experiment-3/E3_X4.ASM
+Experiment-4/E4_E1.ASM
+Experiment-4/E4_E2.ASM
+Experiment-4/E4_E3.ASM
+Experiment-4/E4_E4.ASM
+Experiment-4/E4_E5.ASM
+Experiment-4/E4_P1.ASM
+Experiment-4/E4_P2_2.ASM
+Experiment-4/E4_P3.ASM
+Experiment-4/E4_P4.ASM
+Experiment-4/E4_X1.ASM
+Experiment-4/E4_X2-2.ASM
+Experiment-4/E4_X2.ASM
+Experiment-4/E4_X3.ASM
+Experiment-4/E4_X4.ASM
+Experiment-5/E5_X1-2.ASM
+Experiment-5/E5_X1.ASM
+Experiment-6/E6_X1.ASM
+Experiment-7/E7_X2.ASM
+Experiment-7/E7_X3.ASM
+Experiment-7/E7_X4_1.ASM
+Experiment-7/E7_X4_2.ASM
+
+# ---- not gated, with the measured reason ----
+# Experiment-12/E12_E1.ASM   [UNDEFINED:DELAY.] LCALL DELAY ; 1 mS Delay
+# Experiment-2/E2_X2.ASM   [SYNTAX] ADDC R0, A
+# Experiment-4/E4_P2.ASM   [SYNTAX] CJNE B, #00H, ODD ; CHECK FOR ODD BY REMAINDER
+# Experiment-6/E6_P1.ASM   [UNDEFINED:UPDDT.] LCALL UPDDT ; DISPLAY PROGRAM
+# Experiment-6/E6_P3.ASM   [UNDEFINED:UPDDT.] LCALL UPDDT ; DISPLAY PROGRAM
+# Experiment-6/E6_X4.ASM   [UNDEFINED:UPDDT.] LCALL UPDDT ; DISPLAY PROGRAM
+# Experiment-7/E7_X1.ASM   [UNDEFINED:CLEAR.] LCALL CLEAR ; 12 01 70 	; CLEAR UTILITY ROUTINE
+# Experiment-9/E9_E1.ASM   [UNDEFINED:UPDDT.] LCALL UPDDT ; SHOW IN DISPLAY FIELD
+# Experiment-9/E9_X1.ASM   [UNSUPPORTED_FORM] CJE R5, #02H, CHK_ADD ; CHECK IF FIRST & SECOND OPERAND ENTERED?
